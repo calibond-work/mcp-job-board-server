@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Internal Job Board</title>
+  <style>
+    :root { --bg:#0b1220; --card:#111b2e; --text:#e6edf7; --muted:#9fb0c8; --accent:#7aa2ff; --ok:#79e2b3; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+           background: linear-gradient(180deg, #071021 0%, #0b1220 60%, #08101e 100%);
+           color: var(--text); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 60px; }
+    .topbar { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .brand { font-weight: 700; letter-spacing: .2px; }
+    .pill { font-size: 12px; color: var(--muted); border: 1px solid rgba(159,176,200,.25);
+            padding: 6px 10px; border-radius: 999px; }
+    .card { margin-top: 18px; background: rgba(17,27,46,.92); border: 1px solid rgba(159,176,200,.18);
+            border-radius: 18px; padding: 18px; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+    .row { display:flex; gap:14px; flex-wrap:wrap; }
+    .row > * { flex: 1 1 220px; }
+    .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .value { font-size: 14px; line-height: 1.35; }
+    h1 { margin: 8px 0 4px; font-size: 26px; line-height: 1.15; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(159,176,200,.14); }
+    .section h2 { margin:0 0 10px; font-size: 15px; color: #cfe0ff; letter-spacing: .2px; }
+    ul { margin: 8px 0 0; padding-left: 18px; }
+    li { margin: 6px 0; color: var(--text); }
+    pre { white-space: pre-wrap; word-wrap: break-word; margin:0; font-family: inherit; color: var(--text); line-height: 1.45; }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input { background: rgba(255,255,255,.06); border: 1px solid rgba(159,176,200,.22);
+            color: var(--text); padding: 10px 12px; border-radius: 12px; min-width: 220px; outline:none; }
+    button { background: rgba(122,162,255,.18); border: 1px solid rgba(122,162,255,.45);
+             color: var(--text); padding: 10px 12px; border-radius: 12px; cursor: pointer; }
+    button:hover { background: rgba(122,162,255,.26); }
+
+    .btn-primary { width: 100%; font-weight: 650; background: rgba(122,162,255,.26); border: 1px solid rgba(122,162,255,.65); }
+    .btn-primary:hover { background: rgba(122,162,255,.34); }
+    .btn-primary:active { transform: translateY(1px); }
+
+    a { color: var(--accent); text-decoration: none; }
+    .error { color:#ffb4b4; }
+    .muted { color: var(--muted); }
+    .ok { color: var(--ok); font-weight: 600; }
+
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-top: 8px; }
+    .chip { font-size: 12px; color: rgba(230,237,247,.92); border: 1px solid rgba(159,176,200,.22);
+            background: rgba(255,255,255,.04); padding: 5px 9px; border-radius: 999px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="brand">Internal Job Board</div>
+        <div class="subtitle">Demo viewer for MockAPI job postings</div>
+      </div>
+      <div class="actions">
+        <input id="jobIdInput" placeholder="Enter Job ID (e.g., 66)" />
+        <button id="loadBtn">Load job</button>
+        <span class="pill">Tip: open with <span class="muted">?id=66</span></span>
+      </div>
+    </div>
+
+    <div id="status" class="card">
+      Loading…
+    </div>
+
+    <div id="jobCard" class="card" style="display:none;">
+      <!-- Header -->
+      <div class="row">
+        <div style="flex:2 1 520px;">
+          <div class="label">Job Title</div>
+          <h1 id="title"></h1>
+
+          <div class="chips" id="chips"></div>
+
+          <div class="subtitle" id="meta" style="margin-top:10px;"></div>
+          <div class="subtitle" id="complianceHint" style="margin-top:6px;"></div>
+        </div>
+
+        <div style="flex:1 1 260px;">
+          <div class="label">Compensation</div>
+          <div class="value" id="salary"></div>
+
+          <div style="height:12px;"></div>
+
+          <div class="label">Job ID</div>
+          <div class="value" id="jobId"></div>
+
+          <div style="height:12px;"></div>
+
+          <button id="applyBtn" class="btn-primary" type="button">Apply Now</button>
+          <div class="muted" style="margin-top:8px;font-size:12px;">Demo button (non-binding)</div>
+        </div>
+      </div>
+
+      <!-- Details -->
+      <div class="section">
+        <div class="row">
+          <div>
+            <div class="label">Job Reference</div>
+            <div class="value" id="jobReference"></div>
+          </div>
+          <div>
+            <div class="label">Date Posted</div>
+            <div class="value" id="datePosted"></div>
+          </div>
+          <div>
+            <div class="label">Anticipated Date Close</div>
+            <div class="value" id="anticipatedCloseDate"></div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div>
+          <div class="label">Locations</div>
+          <ul id="locations"></ul>
+        </div>
+      </div>
+
+      <!-- Work arrangement / policy -->
+      <div class="section">
+        <h2>Location - Virtual</h2>
+        <pre id="workArrangement"></pre>
+        <div style="height:12px;"></div>
+        <h2>Commuting Distance Policy</h2>
+        <pre id="commutingPolicy"></pre>
+      </div>
+
+      <!-- Impact -->
+      <div class="section">
+        <h2>How you will make an impact</h2>
+        <ul id="impact"></ul>
+      </div>
+
+      <!-- Minimum requirements -->
+      <div class="section">
+        <h2>Minimum Requirements</h2>
+        <ul id="minimumRequirements"></ul>
+      </div>
+
+      <!-- Preferred -->
+      <div class="section">
+        <h2>Preferred Skills, Capabilities & Experiences</h2>
+        <ul id="preferredSkills"></ul>
+      </div>
+
+      <!-- Benefits -->
+      <div class="section">
+        <h2>Benefits Summary</h2>
+        <pre id="benefitsSummary"></pre>
+      </div>
+
+      <!-- Company -->
+      <div class="section">
+        <h2>Who We Are</h2>
+        <pre id="whoWeAre"></pre>
+      </div>
+
+      <div class="section">
+        <h2>How We Work</h2>
+        <pre id="howWeWork"></pre>
+      </div>
+
+      <!-- Compliance -->
+      <div class="section">
+        <h2>Compliance Notice</h2>
+        <pre id="compliance"></pre>
+      </div>
+
+      <!-- Back-compat / raw -->
+      <div class="section">
+        <h2>Raw Record</h2>
+        <div class="muted">Useful for debugging during the demo.</div>
+        <pre id="raw" style="margin-top:10px; font-size:13px; color:rgba(230,237,247,.92);"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Your MockAPI base
+    const BASE = "https://6980c3626570ee87d5104969.mockapi.io/v1/jobs";
+
+    const statusEl = document.getElementById("status");
+    const jobCard = document.getElementById("jobCard");
+    const input = document.getElementById("jobIdInput");
+    const loadBtn = document.getElementById("loadBtn");
+
+    function setStatus(html, isError=false) {
+      statusEl.innerHTML = isError ? `<div class="error">${html}</div>` : html;
+      statusEl.style.display = "block";
+    }
+
+    function normString(v) {
+      return (typeof v === "string" && v.trim().length) ? v : "";
+    }
+
+    function renderList(el, items) {
+      el.innerHTML = "";
+
+      let arr = [];
+      if (Array.isArray(items)) {
+        arr = items.filter(Boolean).map(x => String(x).trim()).filter(Boolean);
+      } else if (typeof items === "string") {
+        // split on newline or commas; keep reasonable
+        arr = items.split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      }
+
+      if (arr.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "(not provided)";
+        el.appendChild(li);
+        return;
+      }
+
+      arr.forEach(t => {
+        const li = document.createElement("li");
+        li.textContent = t;
+        el.appendChild(li);
+      });
+    }
+
+    function setText(id, value, fallback="(not provided)") {
+      document.getElementById(id).textContent = normString(value) || fallback;
+    }
+
+    function setPre(id, value, fallback="(not provided)") {
+      document.getElementById(id).textContent = normString(value) || fallback;
+    }
+
+    function buildChips(job) {
+      const chips = [];
+      if (job.location) chips.push(`📍 ${job.location}`);
+      if (job.employmentType) chips.push(job.employmentType);
+      if (job.jobReference) chips.push(`Ref: ${job.jobReference}`);
+      if (job.datePosted) chips.push(`Posted: ${job.datePosted}`);
+      if (job.anticipatedCloseDate) chips.push(`Close: ${job.anticipatedCloseDate}`);
+      return chips;
+    }
+
+    function detectCompliance(job) {
+      const blob = [
+        job.compliance,
+        job.description,
+        job.whoWeAre,
+        job.howWeWork,
+        job.benefitsSummary
+      ].filter(Boolean).join("\n").toLowerCase();
+
+      const checks = [
+        { name: "EEO", pass: blob.includes("equal employment opportunity") || blob.includes("equal employment") },
+        { name: "Accommodations", pass: blob.includes("accommodation") || blob.includes("accommodations") },
+        { name: "Pay disclosure", pass: blob.includes("salary") || blob.includes("pay") || blob.includes("compensation") },
+        { name: "Agency disclaimer", pass: blob.includes("agency") || blob.includes("unsolicited resumes") },
+        { name: "Commuting policy", pass: blob.includes("commuting distance") }
+      ];
+
+      const passCount = checks.filter(c => c.pass).length;
+      return { checks, passCount };
+    }
+
+    function render(job) {
+      // Title / meta
+      setText("title", job.title, "(No title)");
+
+      const loc = job.location ? `📍 ${job.location}` : "";
+      const type = job.employmentType ? `• ${job.employmentType}` : "";
+      document.getElementById("meta").textContent = `${loc} ${type}`.trim();
+
+      setText("salary", job.salaryRange);
+      setText("jobId", job.id, "(no id)");
+
+      // New fields (if present)
+      setText("jobReference", job.jobReference);
+      setText("datePosted", job.datePosted);
+      setText("anticipatedCloseDate", job.anticipatedCloseDate);
+
+      // Locations list (array preferred)
+      renderList(document.getElementById("locations"), job.locations);
+
+      // Work arrangement / policy
+      // If you don't have separate fields yet, fall back to portions of description
+      setPre("workArrangement", job.workArrangement || "");
+      setPre("commutingPolicy", job.commutingPolicy || "");
+
+      // Structured bullet sections
+      renderList(document.getElementById("impact"), job.impact);
+      renderList(document.getElementById("minimumRequirements"), job.minimumRequirements);
+      renderList(document.getElementById("preferredSkills"), job.preferredSkills);
+
+      // Long exact blocks
+      setPre("benefitsSummary", job.benefitsSummary || "");
+      setPre("whoWeAre", job.whoWeAre || "");
+      setPre("howWeWork", job.howWeWork || "");
+      setPre("compliance", job.compliance || "");
+
+      // Back-compat: still show description if you are storing everything in description
+      // (This stays for flexibility; you can remove later)
+      setPre("description", job.description || "(no description)");
+
+      // Skills (supports array or string)
+      renderList(document.getElementById("skills"), job.requiredSkills);
+
+      // Chips
+      const chipsEl = document.getElementById("chips");
+      chipsEl.innerHTML = "";
+      buildChips(job).forEach(c => {
+        const span = document.createElement("span");
+        span.className = "chip";
+        span.textContent = c;
+        chipsEl.appendChild(span);
+      });
+
+      // Apply button
+      const applyBtn = document.getElementById("applyBtn");
+      const applyUrl = (typeof job.applyUrl === "string" && job.applyUrl.trim().length) ? job.applyUrl.trim() : "";
+      applyBtn.onclick = () => {
+        if (!applyUrl) {
+          alert("Demo only: Apply flow not connected.");
+          return;
+        }
+        window.open(applyUrl, "_blank", "noopener,noreferrer");
+      };
+
+      // Compliance hint (demo-friendly)
+      const { checks, passCount } = detectCompliance(job);
+      const hintEl = document.getElementById("complianceHint");
+      if (passCount >= 4) {
+        hintEl.innerHTML = `<span class="ok">Compliance checks passed ✅</span>`;
+      } else {
+        const missing = checks.filter(c => !c.pass).map(c => c.name).join(", ");
+        hintEl.innerHTML = `<span class="error">Compliance missing:</span> <span class="muted">${missing || "Unknown"}</span>`;
+      }
+
+      // Raw
+      document.getElementById("raw").textContent = JSON.stringify(job, null, 2);
+
+      statusEl.style.display = "none";
+      jobCard.style.display = "block";
+    }
+
+    async function loadJob(id) {
+      if (!id) {
+        setStatus('Enter a Job ID, or open with <span class="muted">?id=66</span>.', true);
+        jobCard.style.display = "none";
+        return;
+      }
+      setStatus("Loading job…");
+      jobCard.style.display = "none";
+
+      try {
+        const res = await fetch(`${BASE}/${encodeURIComponent(id)}`);
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`HTTP ${res.status}: ${txt}`);
+        }
+        const job = await res.json();
+        render(job);
+      } catch (e) {
+        setStatus(`Could not load job ID <b>${id}</b>.<br/><span class="muted">${e.message}</span>`, true);
+      }
+    }
+
+    loadBtn.addEventListener("click", () => loadJob(input.value.trim()));
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") loadJob(input.value.trim()); });
+
+    // Auto-load from URL param ?id=66
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+      input.value = id;
+      loadJob(id);
+    } else {
+      setStatus('Ready. Enter a Job ID above, or open with <span class="muted">?id=66</span>.');
+    }
+  </script>
+</body>
+</html>
