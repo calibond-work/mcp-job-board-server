@@ -4,7 +4,7 @@ info:
   version: 1.0.0
 
 servers:
-  - url: https://mcp-job-board-server.onrender.com
+  - url: /
 
 paths:
   /jobs:
