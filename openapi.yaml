@@ -22,6 +22,10 @@ paths:
                 - jobReference
                 - datePosted
                 - anticipatedCloseDate
+                - locations 
+                - whoWeAre
+                - howWeWork
+                - complaince
               properties:
                 title:
                   type: string
