@@ -1,16 +1,16 @@
 openapi: 3.0.1
 info:
-  title: Mock Job Board API
-  version: 1.0.0
+  title: Internal Job Board API
+  version: "1.1.0"
 
 servers:
-  - url: /
+  - url: https://6980c3626570ee87d5104969.mockapi.io/v1
 
 paths:
   /jobs:
     post:
-      summary: Post a new job listing to the internal job board
-      operationId: post_job_listing
+      summary: Create a new job listing
+      operationId: createJobPosting
       requestBody:
         required: true
         content:
@@ -19,26 +19,98 @@ paths:
               type: object
               required:
                 - title
-                - description
-                - location
-                - employmentType
-                - salaryRange
-                - requiredSkills
+                - jobReference
+                - datePosted
+                - anticipatedCloseDate
               properties:
                 title:
                   type: string
-                description:
+                  example: Claims Representative I
+
+                jobReference:
                   type: string
-                location:
+                  example: JR172959
+
+                datePosted:
                   type: string
-                employmentType:
+                  description: MM/DD/YYYY
+                  example: "01/26/2026"
+
+                anticipatedCloseDate:
                   type: string
-                salaryRange:
-                  type: string
-                requiredSkills:
+                  description: MM/DD/YYYY
+                  example: "02/09/2026"
+
+                # Multiple physical posting locations (exact list)
+                locations:
                   type: array
                   items:
                     type: string
+                  example:
+                    - "NY-LATHAM, 15 PLAZA DR, United States of America"
+                    - "FL-TAMPA, 5411 SKY CENTER DR"
+                    - "GA-ATLANTA, 740 W PEACHTREE ST NW"
+                    - "IN-INDIANAPOLIS, 220 VIRGINIA AVE"
+                    - "OH-MASON, 4361 IRWIN SIMPSON RD"
+
+                # Virtual/hybrid/onsite description (exact paragraphs if needed)
+                workArrangement:
+                  type: string
+
+                commutingPolicy:
+                  type: string
+
+                impact:
+                  type: array
+                  items:
+                    type: string
+                  description: How you will make an impact (bullet list)
+
+                minimumRequirements:
+                  type: array
+                  items:
+                    type: string
+
+                preferredSkills:
+                  type: array
+                  items:
+                    type: string
+
+                salaryRange:
+                  type: string
+                  example: "$15.90 to $23.86/hr"
+
+                benefitsSummary:
+                  type: string
+
+                whoWeAre:
+                  type: string
+
+                howWeWork:
+                  type: string
+
+                compliance:
+                  type: string
+
+                applyUrl:
+                  type: string
+                  description: Optional. Used by the viewer to power the Apply Now button.
+      responses:
+        "201":
+          description: Created
+        "200":
+          description: OK
+
+  /jobs/{id}:
+    get:
+      summary: Get a job listing by ID
+      operationId: getJobPosting
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         "200":
-          description: Job posted successfully
+          description: Job listing
