@@ -1,0 +1,43 @@
+openapi: 3.0.1
+info:
+  title: Mock Job Board API
+  version: 1.0.0
+
+servers:
+  - url:  https://6980c3626570ee87d5104969.mockapi.io/v1
+paths:
+  /jobs:
+    post:
+      summary: Post a new job listing to the internal job board
+      operationId: post_job_listing
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - location
+                - employmentType
+                - salaryRange
+                - requiredSkills
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                location:
+                  type: string
+                employmentType:
+                  type: string
+                salaryRange:
+                  type: string
+                requiredSkills:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: Job posted successfully
