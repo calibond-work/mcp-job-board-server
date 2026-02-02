@@ -42,6 +42,9 @@ app.post("/mcp/tools/post_job_listing", async (req, res) => {
 });
 
 // Start server
-app.listen(3000, () => {
-  console.log("MCP server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`MCP server running on port ${PORT}`);
 });
+
