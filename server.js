@@ -1,12 +1,13 @@
 import express from "express";
 import cors from "cors";
+import axios from "axios";
 import path from "path";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const app = express();   // ← THIS must come before any app.get/app.use
+const app = express();
 
 app.use(cors());
 app.use(express.json());
@@ -16,12 +17,25 @@ app.get("/", (req, res) => {
   res.send("MCP Job Board Server is running");
 });
 
-// Serve your OpenAPI file
+// Serve OpenAPI spec
 app.get("/openapi.yaml", (req, res) => {
   res.sendFile(path.join(__dirname, "openapi.yaml"));
 });
 
-// Your existing routes go here…
+// Tool route: forward job posting to MockAPI
+app.post("/jobs", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "https://6980c3626570ee87d5104969.mockapi.io/v1/jobs",
+      req.body
+    );
+
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error posting job:", err);
+    res.status(500).json({ error: "Failed to post job" });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 
