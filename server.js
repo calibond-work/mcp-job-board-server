@@ -5,6 +5,10 @@ import cors from "cors";
 import axios from "axios";
 import bodyParser from "body-parser";
 
+app.get("/", (req, res) => {
+  res.send("MCP Job Board Server is running");
+});
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
