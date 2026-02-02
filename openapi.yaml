@@ -22,30 +22,25 @@ paths:
                 - jobReference
                 - datePosted
                 - anticipatedCloseDate
-                - locations 
+                - locations
                 - whoWeAre
                 - howWeWork
-                - complaince
+                - compliance
               properties:
                 title:
                   type: string
                   example: Claims Representative I
-
                 jobReference:
                   type: string
                   example: JR172959
-
                 datePosted:
                   type: string
                   description: MM/DD/YYYY
                   example: "01/26/2026"
-
                 anticipatedCloseDate:
                   type: string
                   description: MM/DD/YYYY
                   example: "02/09/2026"
-
-                # Multiple physical posting locations (exact list)
                 locations:
                   type: array
                   items:
@@ -56,54 +51,40 @@ paths:
                     - "GA-ATLANTA, 740 W PEACHTREE ST NW"
                     - "IN-INDIANAPOLIS, 220 VIRGINIA AVE"
                     - "OH-MASON, 4361 IRWIN SIMPSON RD"
-
-                # Virtual/hybrid/onsite description (exact paragraphs if needed)
                 workArrangement:
                   type: string
-
                 commutingPolicy:
                   type: string
-
                 impact:
                   type: array
                   items:
                     type: string
-                  description: How you will make an impact (bullet list)
-
                 minimumRequirements:
                   type: array
                   items:
                     type: string
-
                 preferredSkills:
                   type: array
                   items:
                     type: string
-
                 salaryRange:
                   type: string
                   example: "$15.90 to $23.86/hr"
-
                 benefitsSummary:
                   type: string
-
                 whoWeAre:
                   type: string
-
                 howWeWork:
                   type: string
-
                 compliance:
                   type: string
-
                 applyUrl:
                   type: string
-                  description: Optional. Used by the viewer to power the Apply Now button.
       responses:
         "201":
           description: Created
-        "200":
-          description: OK
+        "400":
+          description: Bad request
 
   /jobs/{id}:
     get:
