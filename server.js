@@ -1,54 +1,30 @@
 import express from "express";
-import fs from "fs";
-import YAML from "yaml";
 import cors from "cors";
-import axios from "axios";
-import bodyParser from "body-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const app = express();   // ← THIS must come before any app.get/app.use
+
+app.use(cors());
+app.use(express.json());
+
+// Root route so Orchestrate can ping the server
 app.get("/", (req, res) => {
   res.send("MCP Job Board Server is running");
 });
 
-const app = express();
-app.use(cors());
-app.use(bodyParser.json());
-
-// Load OpenAPI YAML
-const openapiFile = fs.readFileSync("./openapi.yaml", "utf8");
-
-// Expose tool definition to Orchestrate
-app.get("/.well-known/mcp/openapi.yaml", (req, res) => {
-  res.setHeader("Content-Type", "application/yaml");
-  res.send(openapiFile);
+// Serve your OpenAPI file
+app.get("/openapi.yaml", (req, res) => {
+  res.sendFile(path.join(__dirname, "openapi.yaml"));
 });
 
-// Handle tool execution
-app.post("/mcp/tools/post_job_listing", async (req, res) => {
-  try {
-    const payload = req.body;
+// Your existing routes go here…
 
-    const response = await axios.post(
-      "https://6980c3626570ee87d5104969.mockapi.io/v1/jobs", 
-      payload
-    );
-
-    res.json({
-      status: "success",
-      jobId: response.data.id,
-      data: response.data
-    });
-  } catch (err) {
-    res.status(500).json({
-      status: "error",
-      message: err.message
-    });
-  }
-});
-
-// Start server
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`MCP server running on port ${PORT}`);
 });
-
