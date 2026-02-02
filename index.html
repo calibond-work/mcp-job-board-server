@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Internal Job Board</title>
+  <style>
+    :root { --bg:#0b1220; --card:#111b2e; --text:#e6edf7; --muted:#9fb0c8; --accent:#7aa2ff; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+           background: linear-gradient(180deg, #071021 0%, #0b1220 60%, #08101e 100%);
+           color: var(--text); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 18px 60px; }
+    .topbar { display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    .brand { font-weight: 700; letter-spacing: .2px; }
+    .pill { font-size: 12px; color: var(--muted); border: 1px solid rgba(159,176,200,.25);
+            padding: 6px 10px; border-radius: 999px; }
+    .card { margin-top: 18px; background: rgba(17,27,46,.92); border: 1px solid rgba(159,176,200,.18);
+            border-radius: 18px; padding: 18px; box-shadow: 0 12px 30px rgba(0,0,0,.35); }
+    .row { display:flex; gap:14px; flex-wrap:wrap; }
+    .row > * { flex: 1 1 220px; }
+    .label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .value { font-size: 14px; line-height: 1.35; }
+    h1 { margin: 8px 0 4px; font-size: 26px; line-height: 1.15; }
+    .subtitle { color: var(--muted); font-size: 14px; }
+    .section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(159,176,200,.14); }
+    .section h2 { margin:0 0 10px; font-size: 15px; color: #cfe0ff; letter-spacing: .2px; }
+    ul { margin: 8px 0 0; padding-left: 18px; }
+    li { margin: 6px 0; color: var(--text); }
+    pre { white-space: pre-wrap; word-wrap: break-word; margin:0; font-family: inherit; color: var(--text); }
+    .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input { background: rgba(255,255,255,.06); border: 1px solid rgba(159,176,200,.22);
+            color: var(--text); padding: 10px 12px; border-radius: 12px; min-width: 220px; outline:none; }
+    button { background: rgba(122,162,255,.18); border: 1px solid rgba(122,162,255,.45);
+             color: var(--text); padding: 10px 12px; border-radius: 12px; cursor: pointer; }
+    button:hover { background: rgba(122,162,255,.26); }
+    a { color: var(--accent); text-decoration: none; }
+    .error { color:#ffb4b4; }
+    .muted { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="brand">Internal Job Board</div>
+        <div class="subtitle">Demo viewer for MockAPI job postings</div>
+      </div>
+      <div class="actions">
+        <input id="jobIdInput" placeholder="Enter Job ID (e.g., 66)" />
+        <button id="loadBtn">Load job</button>
+        <span class="pill">Tip: open with <span class="muted">?id=66</span></span>
+      </div>
+    </div>
+
+    <div id="status" class="card">
+      Loading…
+    </div>
+
+    <div id="jobCard" class="card" style="display:none;">
+      <div class="row">
+        <div style="flex:2 1 420px;">
+          <div class="label">Job Title</div>
+          <h1 id="title"></h1>
+          <div class="subtitle" id="meta"></div>
+        </div>
+        <div>
+          <div class="label">Compensation</div>
+          <div class="value" id="salary"></div>
+          <div style="height:10px;"></div>
+          <div class="label">Job ID</div>
+          <div class="value" id="jobId"></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Required Skills</h2>
+        <ul id="skills"></ul>
+      </div>
+
+      <div class="section">
+        <h2>Description</h2>
+        <pre id="description"></pre>
+      </div>
+
+      <div class="section">
+        <h2>Raw Record</h2>
+        <div class="muted">Useful for debugging during the demo.</div>
+        <pre id="raw" style="margin-top:10px; font-size:13px; color:rgba(230,237,247,.92);"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ✅ Your MockAPI base
+    const BASE = "https://6980c3626570ee87d5104969.mockapi.io/v1/jobs";
+
+    const statusEl = document.getElementById("status");
+    const jobCard = document.getElementById("jobCard");
+    const input = document.getElementById("jobIdInput");
+    const loadBtn = document.getElementById("loadBtn");
+
+    function setStatus(html, isError=false) {
+      statusEl.innerHTML = isError ? `<div class="error">${html}</div>` : html;
+      statusEl.style.display = "block";
+    }
+
+    function render(job) {
+      document.getElementById("title").textContent = job.title ?? "(No title)";
+      const loc = job.location ? `📍 ${job.location}` : "📍 (no location)";
+      const type = job.employmentType ? `• ${job.employmentType}` : "";
+      document.getElementById("meta").textContent = `${loc} ${type}`.trim();
+      document.getElementById("salary").textContent = job.salaryRange ?? "(not provided)";
+      document.getElementById("jobId").textContent = job.id ?? "(no id)";
+      document.getElementById("description").textContent = job.description ?? "(no description)";
+      document.getElementById("raw").textContent = JSON.stringify(job, null, 2);
+
+      // requiredSkills can be array OR string depending on how your tool is configured
+      const skillsEl = document.getElementById("skills");
+      skillsEl.innerHTML = "";
+      let skills = job.requiredSkills;
+
+      if (Array.isArray(skills)) {
+        // ok
+      } else if (typeof skills === "string") {
+        // split on newlines or commas
+        skills = skills.split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      } else {
+        skills = [];
+      }
+
+      if (skills.length === 0) {
+        const li = document.createElement("li");
+        li.textContent = "(none listed)";
+        skillsEl.appendChild(li);
+      } else {
+        skills.forEach(s => {
+          const li = document.createElement("li");
+          li.textContent = s;
+          skillsEl.appendChild(li);
+        });
+      }
+
+      statusEl.style.display = "none";
+      jobCard.style.display = "block";
+    }
+
+    async function loadJob(id) {
+      if (!id) {
+        setStatus('Enter a Job ID, or open with <span class="muted">?id=66</span>.', true);
+        jobCard.style.display = "none";
+        return;
+      }
+      setStatus("Loading job…");
+      jobCard.style.display = "none";
+
+      try {
+        const res = await fetch(`${BASE}/${encodeURIComponent(id)}`);
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`HTTP ${res.status}: ${txt}`);
+        }
+        const job = await res.json();
+        render(job);
+      } catch (e) {
+        setStatus(`Could not load job ID <b>${id}</b>.<br/><span class="muted">${e.message}</span>`, true);
+      }
+    }
+
+    loadBtn.addEventListener("click", () => loadJob(input.value.trim()));
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") loadJob(input.value.trim()); });
+
+    // Auto-load from URL param ?id=66
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+      input.value = id;
+      loadJob(id);
+    } else {
+      setStatus('Ready. Enter a Job ID above, or open with <span class="muted">?id=66</span>.');
+    }
+  </script>
+</body>
+</html>
