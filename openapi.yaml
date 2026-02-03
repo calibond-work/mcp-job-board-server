@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Internal Job Board API
-  version: "1.1.0"
+  version: 1.0.0
 
 servers:
   - url: https://6980c3626570ee87d5104969.mockapi.io/v1
